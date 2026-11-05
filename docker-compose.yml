@@ -1,0 +1,33 @@
+services:
+  backend:
+    build: ./backend
+    container_name: banglapdf-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      MAX_UPLOAD_MB: "25"
+      MAX_PAGES: "200"
+      CORS_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
+      TRANSLATION_CHUNK_CHARS: "4000"
+      TRANSLATION_RETRIES: "3"
+      TRANSLATION_TIMEOUT: "30"
+    restart: unless-stopped
+  frontend:
+    image: node:22-alpine
+    container_name: banglapdf-web
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - banglapdf_node_modules:/app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: "http://localhost:8000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+volumes:
+  banglapdf_node_modules:
